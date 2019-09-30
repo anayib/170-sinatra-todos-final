@@ -3,7 +3,11 @@ require 'pg'
 class DatabasePersistence
   
   def initialize(logger)
-    @db = PG.connect(dbname: "todos")
+    @db = if Sinatra::Base.production?
+             PG.connect(ENV['DATABASE_URL'])
+          else
+             PG.connect(dbname: "todos")
+          end
     @logger = logger
   end
   
@@ -69,8 +73,8 @@ class DatabasePersistence
   end
 
   def delete_todo_from_list(todo_id, list_id)
-    sql = "DELETE FROM todos
-         WHERE id= $1 AND list_id = $2"
+    sql = "DELETE FROM todos 
+           WHERE id = $1 AND list_id = $2"
     query(sql, todo_id, list_id)
   #   list = find_list(list_id)
   #   list[:todos].reject! { |todo| todo[:id] == todo_id }
@@ -96,6 +100,10 @@ class DatabasePersistence
   #   list[:todos].each do |todo|
   #     todo[:completed] = true
   #   end
+  end
+
+  def disconnect
+    @db.close
   end
 
   private

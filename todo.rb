@@ -78,6 +78,10 @@ before do
   #logger is provided by Sinatra
 end
 
+after do
+  @storage.disconnect
+end
+
 get "/" do
   redirect "/lists"
 end
@@ -173,7 +177,7 @@ post "/lists/:list_id/todos/:id/destroy" do
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
   todo_id = params[:id].to_i
-  @storage.delete_todo_from_list(@list_id, todo_id)
+  @storage.delete_todo_from_list(todo_id, @list_id)
 
   if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
     status 204
